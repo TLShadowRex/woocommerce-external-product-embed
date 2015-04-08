@@ -61,12 +61,13 @@ class WC_API_Client {
 	 * @param string  $store_url       The URL to the WooCommerce store
 	 * @param boolean $is_ssl          If the URL is secure or not, optional
 	 */
-	public function __construct( $consumer_key, $consumer_secret, $store_url, $is_ssl = false ) {
+	public function __construct( $consumer_key, $consumer_secret, $store_url, $is_ssl = false, $getFallback = false ) {
 		if ( ! empty( $consumer_key ) && ! empty( $consumer_secret ) && ! empty( $store_url ) ) {
 			$this->_api_url = (  rtrim($store_url,'/' ) . '/' ) . self::API_ENDPOINT;
 			$this->set_consumer_key( $consumer_key );
 			$this->set_consumer_secret( $consumer_secret );
 			$this->set_is_ssl( $is_ssl );
+			$this->setGetFallback( $getFallback );
 		} else if ( ! isset( $consumer_key ) && ! isset( $consumer_secret ) ) {
 			throw new Exception( 'Error: __construct() - Consumer Key / Consumer Secret missing.' );
 		} else {
@@ -147,6 +148,10 @@ class WC_API_Client {
 			} else $this->_is_ssl = false;
 		} else $this->_is_ssl = $is_ssl;
 	}
+	
+	public function setGetFallback( $getFallback ) {
+		$this->_getFallback = $getFallback;
+	}	
 
 	/**
 	 * Set the return data as object
@@ -167,7 +172,8 @@ class WC_API_Client {
 		$ch = curl_init();
 
 		// Check if we must use Basic Auth or 1 legged oAuth, if SSL we use basic, if not we use OAuth 1.0a one-legged
-		if ( $this->_is_ssl ) {
+		if( !$this->_getFallback) {
+		if ( $this->_is_ssl  ) {
 			curl_setopt( $ch, CURLOPT_USERPWD, $this->_consumer_key . ":" . $this->_consumer_secret );
 		} else {
 			$params['oauth_consumer_key'] = $this->_consumer_key;
@@ -176,13 +182,15 @@ class WC_API_Client {
 			$params['oauth_signature_method'] = 'HMAC-' . self::HASH_ALGORITHM;
 			$params['oauth_signature'] = $this->generate_oauth_signature( $params, $method, $endpoint );
 		}
-
+		    	} else {
+			$params['consumer_key'] = $this->_consumer_key;
+			$params['consumer_secret'] = $this->_consumer_secret;		    	
+    	}
 		if ( isset( $params ) && is_array( $params ) ) {
 			$paramString = '?' . http_build_query( $params );
 		} else {
 			$paramString = null;
 		}
-
 		// Set up the enpoint URL
 		curl_setopt( $ch, CURLOPT_URL, $this->_api_url . $endpoint . $paramString );
 		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
@@ -196,7 +204,6 @@ class WC_API_Client {
     	} else if ( 'DELETE' === $method ) {
 			curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, 'DELETE' );
     	}
-
 		$return = curl_exec( $ch );
 
 		$code = curl_getinfo( $ch, CURLINFO_HTTP_CODE );

@@ -25,8 +25,9 @@ class Woocommerce_External_Product_Embed {
 		$consumer_key    = $options['wcepe_text_field_0'];
 		$consumer_secret = $options['wcepe_text_field_1'];
 		$store_url       = $options['wcepe_text_field_2'];
+		$fallback       = ($options['wcepe_text_field_6']=="true");		
 
-		$wc_api = new WC_API_Client( $consumer_key, $consumer_secret, $store_url );
+		$wc_api = new WC_API_Client( $consumer_key, $consumer_secret, $store_url, true, $fallback );
 		return $wc_api;
 	}
 
@@ -47,7 +48,6 @@ class Woocommerce_External_Product_Embed {
 		$wc_api   = $this->store_api_info();
 		$external = $wc_api->get_product( $external_product_id );
 		$link     = $external->product->permalink;
-
 		return $link;
 	}
 

@@ -56,6 +56,14 @@ class Woocommerce_External_Product_Embed_Admin {
 			'pluginPage', 
 			'wcepe_pluginPage_section' 
 		);
+		
+		add_settings_field( 
+			'wcepe_text_field_6', 
+			__( 'Get Fallback', 'wordpress' ), 
+			array( $this, 'wcepe_text_field_6_render' ),
+			'pluginPage', 
+			'wcepe_pluginPage_section' 
+		);		
 
 		add_settings_field( 
 			'wcepe_text_field_4', 
@@ -101,6 +109,13 @@ class Woocommerce_External_Product_Embed_Admin {
 		<input type='number' name='wcepe_settings[wcepe_text_field_3]' value='<?php echo $options['wcepe_text_field_3']; ?>'>
 		<?php
 	}
+	
+	function wcepe_text_field_6_render(  ) { 
+		$options = get_option( 'wcepe_settings' );
+		?>
+		<input type='checkbox' name='wcepe_settings[wcepe_text_field_6]' value='true' <?php echo ($options[wcepe_text_field_6]=="true"?'checked=true':'')  ?>>
+		<?php
+	}	
 
 	function wcepe_text_field_4_render(  ) { 
 		$options = get_option( 'wcepe_settings' );
